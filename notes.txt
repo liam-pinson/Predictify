@@ -1,0 +1,21 @@
+Test these endpoints
+Login:
+http://127.0.0.1:8000/auth/spotify/login
+Auth status:
+http://127.0.0.1:8000/auth/status
+Current Spotify user:
+http://127.0.0.1:8000/spotify/me
+Playlist details:
+http://127.0.0.1:8000/spotify/playlists/3cEYpjA9oz9GiPac4AsH4n
+Playlist tracks:
+http://127.0.0.1:8000/spotify/playlists/3cEYpjA9oz9GiPac4AsH4n/tracks
+
+.venv\Scripts\activate
+
+run this command for environment
+
+# run backend
+uvicorn api:app --reload --port 8000
+
+# run frontend
+npm run dev

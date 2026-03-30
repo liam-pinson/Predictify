@@ -1,0 +1,11 @@
+spotipy
+pandas
+torch
+scikit-learn
+joblib
+spotdl
+dotenv
+ffmpeg
+uvicorn
+fastapi
+librosa

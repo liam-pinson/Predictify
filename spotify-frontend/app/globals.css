@@ -1,0 +1,18 @@
+/* UNCOMMENT ME
+@import "tailwindcss";
+
+@theme {
+  --color-spotify-green: #1db954;
+  --color-spotify-black: #121212;
+  --color-spotify-dark: #181818;
+  --color-spotify-card: #282828;
+  --color-spotify-hover: #3e3e3e;
+  --color-spotify-text: #ffffff;
+  --color-spotify-muted: #b3b3b3;
+}
+
+body {
+  background-color: #121212;
+  color: #ffffff;
+  font-family: Arial, Helvetica, sans-serif;
+} */
