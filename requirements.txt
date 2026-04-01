@@ -9,3 +9,5 @@ ffmpeg
 uvicorn
 fastapi
 librosa
+Path
+google-genai

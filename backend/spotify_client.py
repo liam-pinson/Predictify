@@ -105,25 +105,11 @@ def collect():
 
     return all_data
 
-def search_single_track():
-
-    auth_manager=SpotifyOAuth(scope=scope)
-    
-    sp = spotipy.Spotify(auth_manager=auth_manager)
-
-    query = "Dramamine"
-
-    results = sp.search(q=query, type="track", limit=10)
-
-    return results["tracks"]["items"]
-
 if __name__ == "__main__":
     
-#     tracks = collect()
+    tracks = collect()
 
-#     if tracks:
-#         process_all_downloads(tracks)
+    if tracks:
+        process_all_downloads(tracks)
 
-#         process_audio_dataset()
-
-    print(search_single_track())
+        process_audio_dataset()

@@ -2,6 +2,8 @@ import os
 import uuid
 import shutil
 import subprocess
+import threading
+
 from spotdl import Spotdl
 from spotdl.types.song import Song, SongError
 from spotdl.utils.spotify import SpotifyClient
@@ -11,6 +13,22 @@ from pathlib import Path
 from config import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
 
 load_dotenv()
+
+# Shared global spotdl client + lock
+_spotdl_client = None
+_spotdl_lock = threading.Lock()
+
+
+def get_spotdl_client():
+    global _spotdl_client
+    with _spotdl_lock:
+        if _spotdl_client is None:
+            _spotdl_client = Spotdl(
+                client_id=SPOTIFY_CLIENT_ID,
+                client_secret=SPOTIFY_CLIENT_SECRET,
+                downloader_settings={}
+            )
+        return _spotdl_client
 
 
 # ── Spotify API patch (fixes missing genres/label from Feb 2026 changes) ───────
@@ -47,7 +65,7 @@ def patched_from_url(cls, url: str) -> "Song":
     copyright_text = copyrights[0].get("text") if copyrights else None
 
     album_genres = raw_album_meta.get("genres") or []
-    artist_genres = raw_artist_meta.get("genres") or [] if raw_artist_meta else []
+    artist_genres = (raw_artist_meta.get("genres") or []) if raw_artist_meta else []
 
     publisher = raw_album_meta.get("label") or raw_album_meta.get("publisher") or "Unknown Publisher"
     release_date = raw_album_meta.get("release_date", "1970-01-01")
@@ -91,26 +109,28 @@ def download_single_track(track_id: str) -> str:
     """Downloads one track for inference. Returns path to raw audio file."""
     Song.from_url = patched_from_url
 
+    client = get_spotdl_client()
+
     unique_id = uuid.uuid4().hex
     temp_dir = f"./temp_inference_{unique_id}"
     os.makedirs(temp_dir, exist_ok=True)
 
     url = f"https://open.spotify.com/track/{track_id}"
 
-    spotdl_client = Spotdl(
-        client_id=SPOTIFY_CLIENT_ID,
-        client_secret=SPOTIFY_CLIENT_SECRET,
-        downloader_settings={
-            "output": f"{temp_dir}/{{artist}} - {{title}}.{{output-ext}}"
-        }
-    )
+    with _spotdl_lock:
+        client.downloader.settings["output"] = f"{temp_dir}/{{artist}} - {{title}}.{{output-ext}}"
 
-    songs = spotdl_client.search([url])
-    if not songs:
-        shutil.rmtree(temp_dir, ignore_errors=True)
-        raise Exception(f"spotdl could not find track: {track_id}")
+        songs = client.search([url])
+        if not songs:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            raise Exception(f"spotdl could not find track: {track_id}")
 
-    results = spotdl_client.download_songs(songs)
+        # print("song")
+        # print(songs)
+
+        results = client.download_songs(songs)
+
+    print("after download songs")
 
     for song, path in results:
         if path and os.path.exists(path):
@@ -142,7 +162,6 @@ def process_single_audio(raw_path: str) -> str:
     except subprocess.CalledProcessError:
         raise Exception(f"FFmpeg processing failed for: {raw_path.name}")
     finally:
-        # Always clean up raw file and its temp folder
         raw_dir = raw_path.parent
         if raw_path.exists():
             os.remove(raw_path)
@@ -158,17 +177,10 @@ def process_single_audio(raw_path: str) -> str:
 # ── Batch download for training data ───────────────────────────────────────────
 def process_all_downloads(all_data):
     Song.from_url = patched_from_url
+    client = get_spotdl_client()
 
     temp_dir = "./temp_downloads"
     os.makedirs(temp_dir, exist_ok=True)
-
-    spotdl = Spotdl(
-        client_id=SPOTIFY_CLIENT_ID,
-        client_secret=SPOTIFY_CLIENT_SECRET,
-        downloader_settings={
-            "output": f"{temp_dir}/{{artist}} - {{title}}.{{output-ext}}"
-        }
-    )
 
     print(f"🚀 Starting batch download of {len(all_data)} tracks...")
 
@@ -181,10 +193,17 @@ def process_all_downloads(all_data):
 
         try:
             print(f"  🔍 Processing: {name} ({category})")
-            songs = spotdl.search([url])
+
+            with _spotdl_lock:
+                client.downloader.settings["output"] = f"{temp_dir}/{{artist}} - {{title}}.{{output-ext}}"
+                songs = client.search([url])
+
+                if songs:
+                    results = client.download_songs(songs)
+                else:
+                    results = []
 
             if songs:
-                results = spotdl.download_songs(songs)
                 for song, temp_path in results:
                     if temp_path and os.path.exists(temp_path):
                         file_name = os.path.basename(temp_path)

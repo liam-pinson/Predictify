@@ -32,7 +32,11 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setResults([]);
+
+    // RESET THESE:
     setSelected(null);
+    setPrediction(null);
+    setAnalyzeError(null);
 
     try {
       const res = await fetch(
@@ -128,7 +132,11 @@ export default function Home() {
           {results.map((track) => (
             <div
               key={track.id}
-              onClick={() => setSelected(track)}
+              onClick={() => {
+                setSelected(track);
+                setPrediction(null);    // Clear old prediction when a new track is picked
+                setAnalyzeError(null);
+              }}
               className="flex items-center gap-4 px-4 py-3 cursor-pointer
                          hover:bg-spotify-hover transition border-b border-spotify-card
                          last:border-none"
@@ -165,7 +173,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold">{selected.title}</h2>
               <p className="text-spotify-muted">{selected.artist}</p>
               <p className="text-spotify-muted text-sm mt-1">{selected.album}</p>
-              <div className="mt-3 flex items-center gap-2">
+              {/* <div className="mt-3 flex items-center gap-2">
                 <span className="text-xs text-spotify-muted">Popularity</span>
                 <div className="flex-1 bg-spotify-hover rounded-full h-2">
                   <div
@@ -176,7 +184,7 @@ export default function Home() {
                 <span className="text-xs text-spotify-green font-bold">
                   {selected.popularity}
                 </span>
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -213,7 +221,7 @@ export default function Home() {
             )}
 
             {/* Prediction Result */}
-            {prediction && (
+            {/* {prediction && (
               <div className="text-center">
                 <p className="text-spotify-muted text-xs mb-2 uppercase tracking-widest">
                   Prediction Result
@@ -229,6 +237,45 @@ export default function Home() {
                 <button
                   onClick={() => setPrediction(null)}
                   className="text-spotify-muted text-xs underline hover:text-white transition"
+                >
+                  Analyze again
+                </button>
+              </div>
+            )} */}
+
+            {/* Prediction Result */}
+            {prediction && (
+              <div className="text-center">
+                <p className="text-spotify-muted text-xs mb-2 uppercase tracking-widest">
+                  Prediction Result
+                </p>
+                <p className="text-4xl font-bold text-spotify-green mb-1">
+                  {Math.round(prediction.prediction.hit_probability * 100)}%
+                </p>
+                <p className="text-lg font-semibold capitalize mb-4">
+                  {prediction.prediction.prediction_label === "hit"
+                    ? "🎯 Predicted Hit"
+                    : "🎵 Niche Track"}
+                </p>
+
+                {/* ── NEW: Gemini Summary Section ── */}
+                {prediction.summary && (
+                  <div className="bg-[#1a1a1a] rounded-xl p-5 mt-4">
+                    <p className="text-[#1db954] text-xs font-bold tracking-widest mb-3 flex items-center gap-2">
+                      ✨ AI PRODUCER&apos;S INSIGHT
+                      <span className="bg-[#1db954] text-black text-[10px] font-semibold px-2 py-0.5 rounded-full normal-case tracking-normal">
+                        {prediction.gemini_model ?? "gemini"}
+                      </span>
+                    </p>
+                    <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">
+                      {prediction.summary}
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setPrediction(null)}
+                  className="mt-6 text-spotify-muted text-xs underline hover:text-white transition"
                 >
                   Analyze again
                 </button>
@@ -249,6 +296,41 @@ export default function Home() {
           </button>
         </div>
       )}
+
+      {/* Tech Stack Section */}
+      <div className="max-w-2xl mx-auto mt-10 border-t border-[#2a2a2a] pt-8">
+        <p className="text-center text-xs text-gray-500 font-bold tracking-widest uppercase mb-6">
+          Powered By
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {[
+            { name: "Next.js", role: "Frontend Framework", color: "#ffffff" },
+            { name: "FastAPI", role: "Backend API", color: "#009688" },
+            { name: "PyTorch", role: "ML Model", color: "#ee4c2c" },
+            { name: "Librosa", role: "Audio Feature Extraction", color: "#1db954" },
+            { name: "Gemini AI", role: "Producer Insight", color: "#4285f4" },
+            { name: "Spotify API", role: "Track Metadata", color: "#1db954" },
+            { name: "spotdl", role: "Audio Downloader", color: "#ff6b6b" },
+            { name: "Tailwind CSS", role: "Styling", color: "#38bdf8" },
+          ].map((tech) => (
+            <div
+              key={tech.name}
+              className="bg-[#1a1a1a] rounded-xl p-4 flex flex-col items-center text-center hover:bg-[#222] transition-colors"
+            >
+              <span
+                className="text-sm font-bold mb-1"
+                style={{ color: tech.color }}
+              >
+                {tech.name}
+              </span>
+              <span className="text-[11px] text-gray-500">{tech.role}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-center text-[11px] text-gray-600 mt-8">
+          Spotify Hit Predictor &mdash; Built by Liam Pinson
+        </p>
+      </div>
 
     </main>
   );
