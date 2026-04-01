@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spotify-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spotify-backend
+  template:
+    metadata:
+      labels:
+        app: spotify-backend
+    spec:
+      containers:
+      - name: backend
+        image: us-central1-docker.pkg.dev/YOUR_PROJECT_ID/spotify-repo/backend:v1
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+        env:
+        - name: SPOTIPY_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: SPOTIPY_CLIENT_ID
+        - name: SPOTIPY_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: SPOTIPY_CLIENT_SECRET
+        - name: SPOTIPY_REDIRECT_URI
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: SPOTIPY_REDIRECT_URI
+        - name: SPOTIPY_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: SPOTIPY_USERNAME
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: GEMINI_API_KEY
+        - name: SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: SESSION_SECRET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: spotify-backend
+  ports:
+    - port: 80
+      targetPort: 8000
+  type: LoadBalancer

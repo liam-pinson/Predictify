@@ -3,3 +3,5 @@ backend/.env
 backend/__pycache__/
 backend/scripts/__pycache__/
 notes.txt
+.env
+spotify-frontend/.env.local

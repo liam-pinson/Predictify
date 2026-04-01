@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spotify-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spotify-frontend
+  template:
+    metadata:
+      labels:
+        app: spotify-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: us-central1-docker.pkg.dev/YOUR_PROJECT_ID/spotify-repo/frontend:v1
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+        env:
+        - name: SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: frontend-secrets
+              key: SESSION_SECRET
+        - name: NEXT_PUBLIC_API_URL
+          valueFrom:
+            secretKeyRef:
+              name: frontend-secrets
+              key: NEXT_PUBLIC_API_URL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: spotify-frontend
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: LoadBalancer

@@ -1,0 +1,32 @@
+# ── Stage 1: Build ──────────────────────────────────────────
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files first (layer caching)
+COPY spotify-frontend/package*.json ./
+
+# Clean install
+RUN npm ci
+
+# Copy all frontend source
+COPY spotify-frontend ./
+
+# Build Next.js production output
+RUN npm run build
+
+# ── Stage 2: Production runner ───────────────────────────────
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Copy only the built output — no source, no node_modules
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
