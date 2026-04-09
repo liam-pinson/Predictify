@@ -43,7 +43,7 @@ build_backend:
     - /root/google-cloud-sdk/bin/gcloud auth login --cred-file=/tmp/creds.json --quiet
     - /root/google-cloud-sdk/bin/gcloud config set project $GCP_PROJECT_ID
     - /root/google-cloud-sdk/bin/gcloud auth configure-docker $GAR_HOST --quiet
-    - docker build -t $BACKEND_IMAGE ./backend
+    - docker build -t $BACKEND_IMAGE -f backend/Dockerfile .
     - docker push $BACKEND_IMAGE
   only:
     - main
@@ -79,7 +79,7 @@ build_frontend:
     - /root/google-cloud-sdk/bin/gcloud auth login --cred-file=/tmp/creds.json --quiet
     - /root/google-cloud-sdk/bin/gcloud config set project $GCP_PROJECT_ID
     - /root/google-cloud-sdk/bin/gcloud auth configure-docker $GAR_HOST --quiet
-    - docker build -t $FRONTEND_IMAGE ./spotify-frontend
+    - docker build -t $FRONTEND_IMAGE -f spotify-frontend/Dockerfile .
     - docker push $FRONTEND_IMAGE
   only:
     - main
