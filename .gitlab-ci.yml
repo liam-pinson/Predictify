@@ -22,8 +22,21 @@ build_backend:
   services:
     - docker:27-dind
   script:
-    - echo "$GCP_ID_TOKEN" > .token
-    - gcloud auth login --cred-file=.token --quiet
+    - echo "${GCP_ID_TOKEN}" > /tmp/id_token.txt
+    - |
+      cat > /tmp/creds.json <<EOF
+      {
+        "type": "external_account",
+        "audience": "//iam.googleapis.com/projects/776180568462/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider",
+        "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
+        "token_url": "https://sts.googleapis.com/v1/token",
+        "credential_source": {
+          "file": "/tmp/id_token.txt"
+        },
+        "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/gitlab-deployer@spotify-audio-analyzer-web-app.iam.gserviceaccount.com:generateAccessToken"
+      }
+      EOF
+    - gcloud auth login --cred-file=/tmp/creds.json --quiet
     - gcloud config set project $GCP_PROJECT_ID
     - gcloud auth configure-docker $GAR_HOST --quiet
     - docker build -t $BACKEND_IMAGE ./backend
@@ -41,8 +54,21 @@ build_frontend:
   services:
     - docker:27-dind
   script:
-    - echo "$GCP_ID_TOKEN" > .token
-    - gcloud auth login --cred-file=.token --quiet
+    - echo "${GCP_ID_TOKEN}" > /tmp/id_token.txt
+    - |
+      cat > /tmp/creds.json <<EOF
+      {
+        "type": "external_account",
+        "audience": "//iam.googleapis.com/projects/776180568462/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider",
+        "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
+        "token_url": "https://sts.googleapis.com/v1/token",
+        "credential_source": {
+          "file": "/tmp/id_token.txt"
+        },
+        "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/gitlab-deployer@spotify-audio-analyzer-web-app.iam.gserviceaccount.com:generateAccessToken"
+      }
+      EOF
+    - gcloud auth login --cred-file=/tmp/creds.json --quiet
     - gcloud config set project $GCP_PROJECT_ID
     - gcloud auth configure-docker $GAR_HOST --quiet
     - docker build -t $FRONTEND_IMAGE ./spotify-frontend
@@ -58,8 +84,21 @@ deploy_to_gke:
     GCP_ID_TOKEN:
       aud: https://iam.googleapis.com/projects/776180568462/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider
   script:
-    - echo "$GCP_ID_TOKEN" > .token
-    - gcloud auth login --cred-file=.token --quiet
+    - echo "${GCP_ID_TOKEN}" > /tmp/id_token.txt
+    - |
+      cat > /tmp/creds.json <<EOF
+      {
+        "type": "external_account",
+        "audience": "//iam.googleapis.com/projects/776180568462/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider",
+        "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
+        "token_url": "https://sts.googleapis.com/v1/token",
+        "credential_source": {
+          "file": "/tmp/id_token.txt"
+        },
+        "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/gitlab-deployer@spotify-audio-analyzer-web-app.iam.gserviceaccount.com:generateAccessToken"
+      }
+      EOF
+    - gcloud auth login --cred-file=/tmp/creds.json --quiet
     - gcloud config set project $GCP_PROJECT_ID
     - gcloud container clusters get-credentials $GKE_CLUSTER --region $GKE_REGION
     - sed "s|IMAGE_BACKEND|$BACKEND_IMAGE|g" k8s/backend.yaml | kubectl apply -f -
