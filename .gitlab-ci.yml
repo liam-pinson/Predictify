@@ -91,6 +91,9 @@ deploy_to_gke:
   id_tokens:
     GCP_ID_TOKEN:
       aud: https://iam.googleapis.com/projects/776180568462/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider
+  before_script:
+    # This installs the tools required to talk to GKE
+    - apt-get update && apt-get install -y kubectl google-cloud-cli-gke-gcloud-auth-plugin
   script:
     - echo "${GCP_ID_TOKEN}" > /tmp/id_token.txt
     - |
@@ -109,6 +112,8 @@ deploy_to_gke:
     - gcloud auth login --cred-file=/tmp/creds.json --quiet
     - gcloud config set project $GCP_PROJECT_ID
     - gcloud container clusters get-credentials $GKE_CLUSTER --region $GKE_REGION
+    
+    # These lines now match the renamed .yaml files
     - sed "s|IMAGE_BACKEND|$BACKEND_IMAGE|g" k8s/backend.yaml | kubectl apply -f -
     - sed "s|IMAGE_FRONTEND|$FRONTEND_IMAGE|g" k8s/frontend.yaml | kubectl apply -f -
   only:
