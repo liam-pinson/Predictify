@@ -5,3 +5,4 @@ backend/scripts/__pycache__/
 notes.txt
 .env
 spotify-frontend/.env.local
+.gitlab-ci_OG.yml

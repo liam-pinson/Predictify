@@ -7,8 +7,9 @@ variables:
   GAR_REPO: "spotify-repo"
   GKE_CLUSTER: "spotify-cluster"
   GKE_REGION: "us-central1"
-  BACKEND_IMAGE: "$GAR_HOST/$GCP_PROJECT_ID/$GAR_REPO/backend:$CI_COMMIT_SHORT_SHA"
-  FRONTEND_IMAGE: "$GAR_HOST/$GCP_PROJECT_ID/$GAR_REPO/frontend:$CI_COMMIT_SHORT_SHA"
+  GCP_PROJECT_ID: "spotify-audio-analyzer-web-app"
+  BACKEND_IMAGE_BASE: "us-central1-docker.pkg.dev/spotify-audio-analyzer-web-app/spotify-repo/backend"
+  FRONTEND_IMAGE_BASE: "us-central1-docker.pkg.dev/spotify-audio-analyzer-web-app/spotify-repo/frontend"
   DOCKER_HOST: "tcp://docker:2375"
   DOCKER_TLS_CERTDIR: ""
 
@@ -43,8 +44,15 @@ build_backend:
     - /root/google-cloud-sdk/bin/gcloud auth login --cred-file=/tmp/creds.json --quiet
     - /root/google-cloud-sdk/bin/gcloud config set project $GCP_PROJECT_ID
     - /root/google-cloud-sdk/bin/gcloud auth configure-docker $GAR_HOST --quiet
-    - docker build -t $BACKEND_IMAGE -f backend/Dockerfile .
-    - docker push $BACKEND_IMAGE
+    
+    # ✨ NEW: Build with commit SHA tag
+    - docker build -t ${BACKEND_IMAGE_BASE}:${CI_COMMIT_SHORT_SHA} -f backend/Dockerfile .
+    - docker push ${BACKEND_IMAGE_BASE}:${CI_COMMIT_SHORT_SHA}
+    
+    # ✨ NEW: Also tag as latest for convenience
+    - docker tag ${BACKEND_IMAGE_BASE}:${CI_COMMIT_SHORT_SHA} ${BACKEND_IMAGE_BASE}:latest
+    - docker push ${BACKEND_IMAGE_BASE}:latest
+    
   only:
     - main
 
@@ -79,8 +87,15 @@ build_frontend:
     - /root/google-cloud-sdk/bin/gcloud auth login --cred-file=/tmp/creds.json --quiet
     - /root/google-cloud-sdk/bin/gcloud config set project $GCP_PROJECT_ID
     - /root/google-cloud-sdk/bin/gcloud auth configure-docker $GAR_HOST --quiet
-    - docker build -t $FRONTEND_IMAGE -f spotify-frontend/Dockerfile .
-    - docker push $FRONTEND_IMAGE
+    
+    # ✨ NEW: Build with commit SHA tag
+    - docker build -t ${FRONTEND_IMAGE_BASE}:${CI_COMMIT_SHORT_SHA} -f spotify-frontend/Dockerfile .
+    - docker push ${FRONTEND_IMAGE_BASE}:${CI_COMMIT_SHORT_SHA}
+    
+    # ✨ NEW: Also tag as latest for convenience
+    - docker tag ${FRONTEND_IMAGE_BASE}:${CI_COMMIT_SHORT_SHA} ${FRONTEND_IMAGE_BASE}:latest
+    - docker push ${FRONTEND_IMAGE_BASE}:latest
+    
   only:
     - main
 
@@ -92,7 +107,6 @@ deploy_to_gke:
     GCP_ID_TOKEN:
       aud: https://iam.googleapis.com/projects/776180568462/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider
   before_script:
-    # This installs the tools required to talk to GKE
     - apt-get update && apt-get install -y kubectl google-cloud-cli-gke-gcloud-auth-plugin
   script:
     - echo "${GCP_ID_TOKEN}" > /tmp/id_token.txt
@@ -113,9 +127,25 @@ deploy_to_gke:
     - gcloud config set project $GCP_PROJECT_ID
     - gcloud container clusters get-credentials $GKE_CLUSTER --region $GKE_REGION
     
-    # These lines now match the renamed .yaml files
+    # ✨ NEW: Set full image URLs with commit SHA
+    - export BACKEND_IMAGE="${BACKEND_IMAGE_BASE}:${CI_COMMIT_SHORT_SHA}"
+    - export FRONTEND_IMAGE="${FRONTEND_IMAGE_BASE}:${CI_COMMIT_SHORT_SHA}"
+    
+    # Apply manifests with commit-specific images
     - sed "s|IMAGE_BACKEND|$BACKEND_IMAGE|g" k8s/backend.yaml | kubectl apply -f -
     - sed "s|IMAGE_FRONTEND|$FRONTEND_IMAGE|g" k8s/frontend.yaml | kubectl apply -f -
+    
+    # ✨ NEW: Wait for rollout to complete
+    - kubectl rollout status deployment/spotify-backend -n default --timeout=5m
+    - kubectl rollout status deployment/spotify-frontend -n default --timeout=5m
+    
+    # ✨ NEW: Verify deployed images
+    - echo "✅ Backend image deployed (commit ${CI_COMMIT_SHORT_SHA}):"
+    - kubectl get deployment spotify-backend -n default -o jsonpath='{.spec.template.spec.containers[0].image}'
+    - echo ""
+    - echo "✅ Frontend image deployed (commit ${CI_COMMIT_SHORT_SHA}):"
+    - kubectl get deployment spotify-frontend -n default -o jsonpath='{.spec.template.spec.containers[0].image}'
+    
   only:
     - main
   needs:
