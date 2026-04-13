@@ -22,9 +22,10 @@ socket.getaddrinfo = force_ipv4_getaddrinfo
 
 app = FastAPI()
 
+# fix allow origins to allow frontend external IP to access this endpoint
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://34.173.196.151"],
     allow_methods=["*"],
     allow_headers=["*"],
 )

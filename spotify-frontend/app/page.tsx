@@ -308,10 +308,14 @@ export default function Home() {
             { name: "FastAPI", role: "Backend API", color: "#009688" },
             { name: "PyTorch", role: "ML Model", color: "#ee4c2c" },
             { name: "Librosa", role: "Audio Feature Extraction", color: "#1db954" },
-            { name: "Gemini AI", role: "Producer Insight", color: "#4285f4" },
+            { name: "Google Gemini AI", role: "(LLM) Producer Insight", color: "#4285f4" },
             { name: "Spotify API", role: "Track Metadata", color: "#1db954" },
             { name: "spotdl", role: "Audio Downloader", color: "#ff6b6b" },
             { name: "Tailwind CSS", role: "Styling", color: "#38bdf8" },
+            { name: "Docker", role: "Containerization", color: "#0db7ed" },
+            { name: "Google Kubernetes Engine", role: "Container Orchestration", color: "#4285f4" },
+            { name: "GitLab/Github", role: "Version Control", color: "#fc6d26" },
+            { name: "Google Cloud Platform", role: "Cloud Services", color: "#4285f4" }
           ].map((tech) => (
             <div
               key={tech.name}
