@@ -12,7 +12,12 @@ RUN npm ci
 # Copy all frontend source
 COPY spotify-frontend ./
 
-# Build Next.js production output
+# Accept build argument
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+# Set as environment variable
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+# Build Next.js production output (NEXT_PUBLIC_API_URL is baked in here)
 RUN npm run build
 
 # ── Stage 2: Production runner ───────────────────────────────

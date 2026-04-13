@@ -88,11 +88,11 @@ build_frontend:
     - /root/google-cloud-sdk/bin/gcloud config set project $GCP_PROJECT_ID
     - /root/google-cloud-sdk/bin/gcloud auth configure-docker $GAR_HOST --quiet
     
-    # ✨ NEW: Build with commit SHA tag
-    - docker build -t ${FRONTEND_IMAGE_BASE}:${CI_COMMIT_SHORT_SHA} -f spotify-frontend/Dockerfile .
+    # ✅ Build with NEXT_PUBLIC_API_URL build arg
+    - docker build --build-arg NEXT_PUBLIC_API_URL=http://35.226.255.201 -t ${FRONTEND_IMAGE_BASE}:${CI_COMMIT_SHORT_SHA} -f spotify-frontend/Dockerfile .
     - docker push ${FRONTEND_IMAGE_BASE}:${CI_COMMIT_SHORT_SHA}
     
-    # ✨ NEW: Also tag as latest for convenience
+    # Also tag as latest for convenience
     - docker tag ${FRONTEND_IMAGE_BASE}:${CI_COMMIT_SHORT_SHA} ${FRONTEND_IMAGE_BASE}:latest
     - docker push ${FRONTEND_IMAGE_BASE}:latest
     
