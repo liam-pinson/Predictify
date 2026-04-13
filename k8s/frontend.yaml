@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: us-central1-docker.pkg.dev/YOUR_PROJECT_ID/spotify-repo/frontend:v1
+        image: IMAGE_FRONTEND
         ports:
         - containerPort: 3000
         resources:

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: us-central1-docker.pkg.dev/YOUR_PROJECT_ID/spotify-repo/backend:v1
+        image: IMAGE_BACKEND
         ports:
         - containerPort: 8000
         resources:
