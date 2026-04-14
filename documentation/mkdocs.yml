@@ -1,0 +1,16 @@
+site_name: Spotify Hit Predictor
+site_description: ML-powered Spotify hit prediction web app
+site_author: Liam Pinson
+
+theme:
+  name: material
+  palette:
+    primary: green
+    accent: green
+
+nav:
+  - Home: index.md
+  - Setup: setup.md
+  - Architecture: architecture.md
+  - API Integration: api.md
+  - Deployment: deployment.md
