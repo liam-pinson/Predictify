@@ -19,10 +19,10 @@
 ## 📸 Screenshots
 
 ### Home
-![Home](./assets/home.png)
+![Home](./documentation/assets/home.png)
 
 ### Prediction Result
-![Player](./assets/player.png)
+![Player](./documentation/assets/player.png)
 
 ---
 
