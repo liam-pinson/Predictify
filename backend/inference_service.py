@@ -14,6 +14,7 @@ def run_spotify_inference(track_id: str):
     try:
         # 1. Download
         print("pre download")
+        print(track_id)
         raw_audio = download_single_track(track_id)
         print("post download")
 
@@ -22,14 +23,17 @@ def run_spotify_inference(track_id: str):
         raw_audio = None  # already cleaned up by process_single_audio
 
         # 3. Extract features
+        print("getting features")
         features = extract_features(processed_audio)
         if features is None:
             raise Exception("Feature extraction failed")
 
         # 4. Predict
+        print("starting prediction")
         prediction = predict_from_features(features)
 
         # 5. Generate Gemini Summary
+        print("generate summary")
         summary, model_used = generate_hit_summary(features, prediction)
 
         return {

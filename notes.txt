@@ -19,3 +19,8 @@ uvicorn api:app --reload --port 8000
 
 # run frontend
 npm run dev
+
+# work vpn can block YT-DLP to download song from SPOTDL library,
+use unrestricted network
+
+# need to have FFMPEG library downloaded

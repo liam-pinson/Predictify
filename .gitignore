@@ -6,3 +6,27 @@ notes.txt
 .env
 spotify-frontend/.env.local
 .gitlab-ci_OG.yml
+.env
+*.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+
+# Temporary files
+temp_*/
+*.mp3
+*.wav
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

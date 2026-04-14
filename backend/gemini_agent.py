@@ -5,7 +5,6 @@ from google import genai
 MODEL_FALLBACKS = [
     "gemini-3-flash-preview",
     "gemini-3.1-flash-lite-preview",
-    "gemini-2.5-pro",
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
 ]
@@ -24,6 +23,7 @@ def generate_hit_summary(features: dict, prediction: dict) -> tuple[str, str]:
     Explain whether this song is likely to be a hit.
     Mention strengths, weaknesses, and the most influential audio characteristics.
     Keep the explanation concise and insightful.
+    Explain the statistics presented in the features as well.
     """
 
     last_error = None
@@ -38,11 +38,13 @@ def generate_hit_summary(features: dict, prediction: dict) -> tuple[str, str]:
                 text = getattr(response, "text", None)
                 if text:
                     return text.strip(), model
-                return "Analysis generated, but no text was returned."
+                return "Analysis generated, but no text was returned.", model
 
             except Exception as e:
                 last_error = e
                 err = str(e)
+
+                print(err)
 
                 if "503" in err or "UNAVAILABLE" in err or "429" in err or "RESOURCE_EXHAUSTED" in err:
                     wait_time = 3 * (attempt + 1)
@@ -57,4 +59,4 @@ def generate_hit_summary(features: dict, prediction: dict) -> tuple[str, str]:
                 print(f"Error with {model}: {e}")
                 break
 
-    return "Gemini analysis is temporarily unavailable."
+    return "Gemini analysis is temporarily unavailable.", "no model working"
